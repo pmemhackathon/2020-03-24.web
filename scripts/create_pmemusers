@@ -1,0 +1,212 @@
+#!/usr/bin/perl
+#
+# create_pmemusers lo hi repo
+#
+# run once per hackathon to create all the pmemuserX accounts,
+# home directories, directories under /pmem, and passwd/group files.
+# users can't login until enable_pmemusers script is run.  idempotent.
+#
+# undoing this script is done by:
+#	delete_pmemusers
+#
+
+use strict;
+use warnings;
+
+$ENV{PATH} = "/bin:/usr/bin:/sbin:/usr/sbin";
+umask 077;
+
+my $Me = $0;
+$Me =~ s,.*/,,;
+
+# hackathon UID and GID are $BASEID, pmemusers number up from there
+my $BASEID = 5000;
+
+die "usage: $Me lo hi repo\n" unless $#ARGV == 2;
+my $Lo = $ARGV[0];
+my $Hi = $ARGV[1];
+die "lo argument must be numeric\n", unless $Lo =~ /^[1-9][0-9]{0,3}$/;
+die "hi argument must be numeric\n", unless $Hi =~ /^[1-9][0-9]{0,3}$/;
+die "lo ($Lo) must be <= hi ($Hi)\n", unless $Lo <= $Hi;
+my $Repo = $ARGV[2];
+my $Shell = '/home/hackathon/hackathonsh';
+
+if ($Lo == $Hi) {
+	say("user to create: pmemuser$Lo");
+} else {
+	say("users to create: pmemuser$Lo through pmemuser$Hi");
+}
+
+my $Passwd_proto =<<'EOF';
+root:x:0:0:root:/root:/bin/bash
+bin:x:1:1:bin:/bin:/sbin/nologin
+daemon:x:2:2:daemon:/sbin:/sbin/nologin
+adm:x:3:4:adm:/var/adm:/sbin/nologin
+lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin
+sync:x:5:0:sync:/sbin:/bin/sync
+shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown
+halt:x:7:0:halt:/sbin:/sbin/halt
+mail:x:8:12:mail:/var/spool/mail:/sbin/nologin
+operator:x:11:0:operator:/root:/sbin/nologin
+games:x:12:100:games:/usr/games:/sbin/nologin
+ftp:x:14:50:FTP User:/var/ftp:/sbin/nologin
+nobody:x:65534:65534:Kernel Overflow User:/:/sbin/nologin
+systemd-coredump:x:999:997:systemd Core Dumper:/:/sbin/nologin
+systemd-network:x:192:192:systemd Network Management:/:/sbin/nologin
+systemd-resolve:x:193:193:systemd Resolver:/:/sbin/nologin
+dbus:x:81:81:System message bus:/:/sbin/nologin
+unbound:x:998:996:Unbound DNS resolver:/etc/unbound:/sbin/nologin
+systemd-timesync:x:995:995:systemd Time Synchronization:/:/sbin/nologin
+sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin
+EOF
+
+my $Shadow_proto =<<'EOF';
+root:$6$ymaJifj5fExW0J3r$cZjOnqK1u0BjdZdgzTVAXNBstECiPD.kS78TcDU/Ep0vUwSHZblbMduvcrufdG6S6gxv257MKPJ.H5G5RLjkb0::0:99999:7:::
+bin:*:17995:0:99999:7:::
+daemon:*:17995:0:99999:7:::
+adm:*:17995:0:99999:7:::
+lp:*:17995:0:99999:7:::
+sync:*:17995:0:99999:7:::
+shutdown:*:17995:0:99999:7:::
+halt:*:17995:0:99999:7:::
+mail:*:17995:0:99999:7:::
+operator:*:17995:0:99999:7:::
+games:*:17995:0:99999:7:::
+ftp:*:17995:0:99999:7:::
+nobody:*:17995:0:99999:7:::
+systemd-coredump:!!:18078::::::
+systemd-network:!!:18078::::::
+systemd-resolve:!!:18078::::::
+dbus:!!:18078::::::
+unbound:!!:18078::::::
+systemd-timesync:!!:18078::::::
+sshd:!!:18083::::::
+EOF
+
+my $Group_proto =<<'EOF';
+root:x:0:
+bin:x:1:
+daemon:x:2:
+sys:x:3:
+adm:x:4:
+tty:x:5:
+disk:x:6:
+lp:x:7:
+mem:x:8:
+kmem:x:9:
+wheel:x:10:
+cdrom:x:11:
+mail:x:12:
+man:x:15:
+dialout:x:18:
+floppy:x:19:
+games:x:20:
+tape:x:33:
+video:x:39:
+ftp:x:50:
+lock:x:54:
+audio:x:63:
+users:x:100:
+nobody:x:65534:
+utmp:x:22:
+utempter:x:35:
+input:x:999:
+kvm:x:36:
+render:x:998:
+systemd-journal:x:190:
+systemd-coredump:x:997:
+systemd-network:x:192:
+systemd-resolve:x:193:
+dbus:x:81:
+unbound:x:996:
+systemd-timesync:x:995:
+ssh_keys:x:994:
+sshd:x:74:
+EOF
+
+$SIG{HUP} = $SIG{INT} = $SIG{TERM} = $SIG{__DIE__} = sub {
+	die @_ if $^S;
+
+	my $errstr = shift;
+
+	die "$Me: ERROR: $errstr";
+};
+
+sub say {
+	print "$Me: ", @_, "\n";
+}
+
+sub frans {
+	my ($file, $contents) = @_;
+
+	open(FRANSFILE, ">$file") or die "$file: $!\n";
+
+	print FRANSFILE $contents;
+
+	close(FRANSFILE);
+}
+
+sub runy {
+	my ($cmd) = @_;
+
+	system($cmd);
+	die "unexpected exit code: $? for command \"$cmd\"\n" if ($? >> 8);
+}
+
+die "must run this script as root\n" if ($>);
+
+my $H = '/home/hackathon';
+
+# verify minimal environment exists
+die "$H directory not found\n" unless -d $H;
+die "/pmem0 directory not found\n" unless -d '/pmem0';
+die "/pmem1 directory not found\n" unless -d '/pmem1';
+die "$H/css directory not found\n" unless -d "$H/css";
+die "$H/img directory not found\n" unless -d "$H/img";
+die "$H/js directory not found\n" unless -d "$H/js";
+die "$H/templates directory not found\n" unless -d "$H/templates";
+die "$H/users.skel directory not found\n" unless -d "$H/users.skel";
+die "$H/users directory already exists\n" if -d "$H/users";
+
+die "repo $H/$Repo not found\n" unless -d "$H/$Repo";
+say("Repo: $H/$Repo");
+
+my $passwd = `grep '^pmemuser[0-9][0-9]*:' /etc/passwd`;
+my $nopasswd = $? >> 8;
+die "pmemuserX accounts already in /etc/passwd\n" unless $nopasswd;
+
+umask 022;
+say("creating /home/hackathon/users");
+runy("mkdir -p /home/hackathon/users");
+
+my @pmem_mounts = ('/pmem0', '/pmem1');
+
+for (my $id = $Lo; $id <= $Hi; $id++) {
+	my $thisid = $BASEID + $id;
+	my $user = "pmemuser$id";
+	say("creating $user");
+	my $mount = $pmem_mounts[$id % 2];
+	my $pmemdir = "$mount/$user";
+	die "$pmemdir already exists\n" if -d "$pmemdir";
+	runy("mkdir -p $H/users/$user");
+	my $passwd_file = $Passwd_proto .
+"$user:x:$thisid:$thisid:pmem user $id:/home/$user:/bin/bash\n";
+	frans("$H/users/$user/passwd", $passwd_file);
+	runy("chown root:root $H/users/$user/passwd");
+	runy("chmod 644 $H/users/$user/passwd");
+	my $shadow_file = $Shadow_proto .  "$user:!!:18083::::::\n";
+	frans("$H/users/$user/shadow", $shadow_file);
+	runy("chown root:root $H/users/$user/shadow");
+	runy("chmod 600 $H/users/$user/shadow");
+	my $group_file = $Group_proto . "$user:x:$thisid\n";
+	frans("$H/users/$user/group", $group_file);
+	runy("groupadd -g $thisid $user");
+	runy("useradd -u $thisid -g $thisid -d $H/users/$user/home -m -k $H/users.skel -s $H/hackathonsh $user");
+	runy("mkdir -p $pmemdir");
+	runy("chown $thisid:$thisid $pmemdir");
+	runy("cp -r --preserve=mode $H/$Repo $H/users/$user/home");
+	runy("chown -R $thisid:$thisid $H/users/$user/home/$Repo");
+}
+
+say('done');
+exit 0;

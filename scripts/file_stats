@@ -1,0 +1,68 @@
+#!/usr/bin/perl
+#
+# file_stats -- spew file stats
+#
+
+use strict;
+use warnings;
+
+$ENV{PATH} = "/bin:/usr/bin:/sbin:/usr/sbin";
+umask 077;
+
+my $Me = $0;
+$Me =~ s,.*/,,;
+
+$SIG{HUP} = $SIG{INT} = $SIG{TERM} = $SIG{__DIE__} = sub {
+	die @_ if $^S;
+
+	my $errstr = shift;
+
+	die "$Me: ERROR: $errstr";
+};
+
+use File::Find;
+use JSON qw (decode_json);
+
+# array of hashes:
+#	each entry in an array is a record (hash) holding a session
+#	each record has an "mtime" key and a "file" key
+my @files;
+find(sub {
+	# skip dot files
+	# set prune so we don't try to descend into .cache, .gnupg, .git, etc
+	if (/^\../) {
+		$File::Find::prune = 1;
+		return;
+	}
+	return unless -f;
+
+	my ($dev, $ino, $mode, $nlink, $uid, $gid, $rdev, $size,
+		$atime, $mtime, $ctime, $blksize, $blocks) = stat(_);
+
+	my $f = {};
+	$f->{file} = $File::Find::name;
+	$f->{mtime} = $mtime;
+
+	push(@files, $f);
+}, '/home/hackathon/users');
+
+print "How Long Ago    File\n";
+my $now = time();
+foreach my $f (sort { $b->{mtime} <=> $a->{mtime} } @files) {
+	my $ago = $now - $f->{mtime};
+	my $suffix = 's';	# seconds
+
+	if ($ago > (60 * 60 * 24)) {
+		$suffix = 'd';	# days
+		$ago = int($ago / (60 * 60 * 24));
+		next if $ago > 1;	# don't show really old stuff
+	} elsif ($ago > (60 * 60)) {
+		$suffix = 'h';	# hours
+		$ago = int($ago / (60 * 60));
+	} elsif ($ago > 120) {
+		$suffix = 'm';	# minutes
+		$ago = int($ago / 60);
+	}
+
+	printf '  %5d%s        %s' . "\n", $ago, $suffix, $f->{file};
+}

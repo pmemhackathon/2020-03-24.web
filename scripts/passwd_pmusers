@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+#
+# passwd_pmemusers lo li passwd
+#
+# changes pmemuserX password for the given range
+#
+
+use strict;
+use warnings;
+
+$ENV{PATH} = "/bin:/usr/bin:/sbin:/usr/sbin";
+umask 077;
+
+my $Me = $0;
+$Me =~ s,.*/,,;
+
+# check the args
+die "usage: $Me lo hi passwd\n" unless $#ARGV == 2;
+my $Lo = $ARGV[0];
+my $Hi = $ARGV[1];
+die "lo argument must be numeric\n", unless $Lo =~ /^[1-9][0-9]{0,3}$/;
+die "hi argument must be numeric\n", unless $Hi =~ /^[1-9][0-9]{0,3}$/;
+die "lo ($Lo) must be <= hi ($Hi)\n", unless $Lo <= $Hi;
+my $Pass = $ARGV[2];
+if ($Lo == $Hi) {
+	say("user to enable: pmemuser$Lo");
+} else {
+	say("users to enable: pmemuser$Lo through pmemuser$Hi");
+}
+
+$SIG{HUP} = $SIG{INT} = $SIG{TERM} = $SIG{__DIE__} = sub {
+	die @_ if $^S;
+
+	my $errstr = shift;
+
+	die "$Me: ERROR: $errstr";
+};
+
+sub say {
+	print "$Me: ", @_, "\n";
+}
+
+sub runy {
+	my ($cmd) = @_;
+
+	system($cmd);
+	die "unexpected exit code: $? for command \"$cmd\"\n" if ($? >> 8);
+}
+
+die "must run this script as root\n" if ($>);
+
+my $passwd = `grep '^pmemuser[0-9][0-9]*:' /etc/passwd`;
+my $nopasswd = $? >> 8;
+die "no pmemuserX accounts in /etc/passwd\n" if $nopasswd;
+
+my @pmem_mounts = ('/pmem0', '/pmem1');
+
+for (my $id = $Lo; $id <= $Hi; $id++) {
+	my $user = "pmemuser$id";
+	say("setting passwd for $user");
+	runy("echo '$user:$Pass' | chpasswd");
+}
+
+say('done');
+exit 0;

@@ -1,0 +1,112 @@
+#!/usr/bin/perl
+#
+# enable_pmemusers lo li [passwd]
+#
+# run at the beginning of each session to run the docker container
+# for each pmemuser and optionally set their login passwords.  example:
+#	enable_pmemusers 1 50 todayspass
+#
+# after using enable_pmemusers the first time, pmemuser accounts can be
+# selectively disabled and re-enabled using docker to stop & start their
+# containers:
+#	docker stop pmemuser4 pmemuser5     # disable users 4 and 5
+#	docker start pmemuser4              # re-enable user 4
+#
+# to stop all containers:
+#	docker stop $(docker ps -aq -f name=pmemuser -f status=running)
+#
+# or if you know the only containers are pmemusers, you can just:
+#	docker stop $(docker ps -aq)
+#
+
+use strict;
+use warnings;
+
+$ENV{PATH} = "/bin:/usr/bin:/sbin:/usr/sbin";
+umask 077;
+
+my $Me = $0;
+$Me =~ s,.*/,,;
+
+# hackathon UID and GID are $BASEID, pmemusers number up from there
+my $BASEID = 5000;
+
+# name of docker container to use
+my $Image = 'pmemhackathon/pmemfc30:06';
+
+# check the args
+die "usage: $Me lo hi [passwd]\n" unless $#ARGV == 1 || $#ARGV == 2;
+my $Lo = $ARGV[0];
+my $Hi = $ARGV[1];
+die "lo argument must be numeric\n", unless $Lo =~ /^[1-9][0-9]{0,3}$/;
+die "hi argument must be numeric\n", unless $Hi =~ /^[1-9][0-9]{0,3}$/;
+die "lo ($Lo) must be <= hi ($Hi)\n", unless $Lo <= $Hi;
+my $Setpass = 0;
+my $Pass;
+if ($#ARGV == 2) {
+	$Pass = $ARGV[2];
+	$Setpass = 1;
+}
+if ($Lo == $Hi) {
+	say("user to enable: pmemuser$Lo");
+} else {
+	say("users to enable: pmemuser$Lo through pmemuser$Hi");
+}
+
+$SIG{HUP} = $SIG{INT} = $SIG{TERM} = $SIG{__DIE__} = sub {
+	die @_ if $^S;
+
+	my $errstr = shift;
+
+	die "$Me: ERROR: $errstr";
+};
+
+sub say {
+	print "$Me: ", @_, "\n";
+}
+
+sub runy {
+	my ($cmd) = @_;
+
+	system($cmd);
+	die "unexpected exit code: $? for command \"$cmd\"\n" if ($? >> 8);
+}
+
+die "must run this script as root\n" if ($>);
+
+my $H = '/home/hackathon';
+
+# verify minimal environment exists
+die "$H directory not found\n" unless -d $H;
+die "/pmem0 directory not found\n" unless -d '/pmem0';
+die "/pmem1 directory not found\n" unless -d '/pmem1';
+die "$H/css directory not found\n" unless -d "$H/css";
+die "$H/img directory not found\n" unless -d "$H/img";
+die "$H/js directory not found\n" unless -d "$H/js";
+die "$H/templates directory not found\n" unless -d "$H/templates";
+die "$H/users directory not found\n" unless -d "$H/users";
+
+my $passwd = `grep '^pmemuser[0-9][0-9]*:' /etc/passwd`;
+my $nopasswd = $? >> 8;
+die "no pmemuserX accounts in /etc/passwd\n" if $nopasswd;
+
+my @pmem_mounts = ('/pmem0', '/pmem1');
+
+for (my $id = $Lo; $id <= $Hi; $id++) {
+	my $thisid = $BASEID + $id;
+	my $user = "pmemuser$id";
+	say("enabling $user");
+	my $mount = $pmem_mounts[$id % 2];
+	my $pmemdir = "$mount/$user";
+	die "$pmemdir not found\n" unless -d "$pmemdir";
+	die "$H/users/$user not found\n" unless -d "$H/users/$user";
+
+	if ($Setpass) {
+		runy("echo '$user:$Pass' | chpasswd");
+	}
+
+	runy("docker run -t -d --name=$user -v $H/users/$user/shadow:/etc/shadow -v $H/users/$user/passwd:/etc/passwd -v $H/users/$user/group:/etc/group -v $H/users/$user/home:/home/$user -v $pmemdir:/pmem -u $thisid:$thisid --hostname=container$id --workdir=/home/$user --cap-add SYS_PTRACE --restart=unless-stopped $Image");
+}
+
+say('done');
+exit 0;

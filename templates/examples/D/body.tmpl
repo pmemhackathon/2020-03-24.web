@@ -1,0 +1,221 @@
+{{top "Converting a C Program for Persistent Memory"}}
+
+<p class="intro">
+A common question is how to take an existing program
+and convert it to use persistent memory.
+<p class="intro">
+In this example, we start with a simple C program that is
+designed to be easy to understand.  We then go through the
+steps to convert the volatile in-memory hash table used in
+the program to a pmem-resident hash table.  The C API
+for <b>libpmemobj</b> is used to provide allocation and
+transactional updates.
+
+{{template "scrollToContinue"}}
+
+<p>
+<img src="/img/examples/{{.Ex}}/freq.jpg" class="figure">
+<p class="clear">
+To help illustrate persistent memory programming techniques,
+let's start with a simple C program.  The program takes a
+text file argument on the command line, reads in all the words
+from that file, and keeps track of how many times each word appears.
+<p>
+This frequency count program is <b>not</b> persistent, starting from zero
+word counts each time it is run.  For each word found in the
+input file, a hash table is consulted to see if the word was
+seen before and, if so, the count for that word is allocated.
+The first time a specific word is encountered, a new node is
+added to the hash table.
+<p>
+The hash table is an array, indexed by the hash value for a
+given word, and each entry in the table is a <i>bucket</i>
+containing a linked list of all words that hash to that index.
+
+{{step "Run the Volatile C Example"}}
+
+<p>
+The starting point, a volatile C program that performs a
+word frequency count, is shown below.  Reading and understanding
+this simple example will help you understand the examples we
+build from it in later steps.
+<p>
+Pay special attention to the data structures: the <code>struct entry</code>
+(line 15 in <code>freq.c</code> below) and the global variable <code>H</code>
+which is the hash table.  The function <code>count()</code> on line 45
+is the logic to focus on in this example.
+<p>
+You can edit the program below and make changes if you'd like to
+experiment, or just run it as-is.
+
+{{edit "freq.c" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make freq"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run the freq Program"}}
+
+<p>
+A small file containing 16 words is provided in <code>words.txt</code>.
+The script below will run the <code>freq</code> example on that file.
+
+{{edit "run_freq.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run_freq.sh"}}
+
+{{step "Multi-Thread the Example"}}
+
+<p>
+<img src="/img/examples/{{.Ex}}/freq_mt.jpg" class="figure">
+<p class="clear">
+Using the <code>freq.c</code> program above as a starting point,
+the next step is to make it multi-threaded.  This allows multiple
+files to have their words counted concurrently.  We do this in
+the traditional way, by adding <i>mutex</i> locks to the hash
+table.  There's one lock for each bucket, and one lock for each
+<code>struct entry</code> that holds the information for each
+word encountered.
+<p>
+There's still nothing persistent about this example!  But as you'll
+see farther down, the steps taken to make a data structure multi-thread
+safe are closely related to the steps taken to make it persistent memory safe.
+Notice where locks are held and released (<code>pthread_mutex_lock()</code>
+and <code>pthread_mutex_unlock()</code> calls).
+
+{{edit "freq_mt.c" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make freq_mt"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run the freq_mt Program"}}
+
+<p>
+The script below will run the <code>freq_mt</code> example on
+three files (using the file <code>words.txt</code> three
+times for simplicity).
+
+{{edit "run_freq_mt.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run_freq_mt.sh"}}
+
+{{step "Convert the Example to pmem"}}
+
+<p>
+<img src="/img/examples/{{.Ex}}/freq_pmem.jpg" class="figure">
+<p class="clear">
+To move our hash table to persistent memory, we must arrange for
+all changes to happen transactionally.  This way, if the program
+or system crashes in the middle of an update, the data structure
+will still be consistent and usable the next time <code>freq_pmem.c</code>
+runs.
+<p>
+We'll be using <b>libpmemobj</b> for this step.  The idea is to
+illustrate how the library works by showing you working code, but
+you may find the
+<a href="/repo/libpmemobj.pdf" target="_new">libpmemobj slides</a>
+useful for some additional background.
+The <a href="http://pmem.io/pmdk/manpages/linux/master/libpmemobj/libpmemobj.7.html" target="_new">libpmemobj man page</a> contains a lot more detail.
+<p>
+To be able to <i>find</i> our hash table in persistent memory,
+we use a file on a persistent memory aware file system (the same DAX-mounted
+file system described in <a href="A">Example A</a>).  We often refer to
+this file as a <i>pmem pool</i> and, in fact, there's a utility called
+<code>pmempool</code> that we use to create the file in the right format.
+<p>
+<b>libpmemobj</b> manages the pmem inside our file, starting with a
+well-known object called the <i>root object</i>.  Notice on line 189
+of <code>freq_pmem.c</code> below, where we access the root object
+to find our hash table.  Also notice how pointers are no longer
+the common C pointers.  They have special types, indicated with
+the <i>typed object ID</i> macro <code>TOID</code>.  These pointers
+work even if the persistent memory appears at a different virtual
+address each time the program is run.  The macro <code>D_RW()</code>
+takes an Object ID and converts it to a direct, read-write C pointer
+that can be used at run-time.
+<p>
+In the <code>count</code> function (line 70 below), you'll now
+see two very important changes.  First we surround our changes
+with <code>TX_BEGIN</code> and <code>TX_END</code>.  This makes
+the change transactional.  The C language doesn't have a syntax
+for transactions, so <b>libpmemobj</b> provides one using these
+macros.  The second change is that before changing any pmem variables
+in a transaction, we tell <b>libpmemobj</b> they changed using
+macros like <code>TX_ADD</code> and <code>TOID_ASSIGN</code>.
+We have to do this because <b>libpmemobj</b> is designed to work
+with existing, unmodified C compilers, so the programmer must
+tell the library when things are changing as part of a transaction.
+In <a href="E">Exercise E</a>, you'll see how the C++ API for
+<b>libpmemobj</b> does this automatically.  There are tools
+to tell you if you are not adding changes to transactions correctly,
+and we'll describe those tools later in <a href="G">Example G</a>.
+
+{{edit "freq_pmem.c" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make freq_pmem freq_pmem_print"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run the freq_pmem Program"}}
+
+<p>
+The script below will create the pmem pool file as necessary and
+run the <code>freq_pmem</code> example on
+three files (again using the file <code>words.txt</code> three
+times for simplicity).  Notice how each time it runs, it adds
+to the counts from the previous run, since the hash table is
+now persistent.
+
+{{edit "run_freq_pmem.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run_freq_pmem.sh"}}
+
+{{summary}}
+
+<p>
+If this is your first time using <b>libpmemobj</b>, this example
+contained a large volume of new information.  We've found the best
+way to get started in pmem programming is to start with a simple
+program that already works and learn by modifying it.  The
+<code>freq_pmem.c</code> program above may be a useful starting point
+for your own project in C.
+<p>
+Continue on to the <a href="E">next example</a> to see
+how the C++ API for <b>libpmemobj</b> provides a cleaner
+version of persistent memory transactions.
+
+{{bottom}}

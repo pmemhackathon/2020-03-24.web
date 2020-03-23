@@ -1,0 +1,233 @@
+{{top "Java LLPL Examples"}}
+
+<p class="intro">
+As part of the PMDK project, several Java-related
+libraries have been developed:
+<p class="intro">
+The <b>pmemkv</b> library: A simple key-value store with Java bindings
+<p class="intro">
+The <b>Experimental PCJ</b> library: Persistent Containers for Java
+<p class="intro">
+The <b>LLPL</b> library: The Low-Level Persistence Library for Java
+<p class="intro">
+This exercise focuses on LLPL for advanced Java programmers who want low-level
+access to persistent memory.  There are a number of example programs
+using LLPL below, each designed to show a different aspect of the library.
+
+{{template "scrollToContinue"}}
+
+<p>
+LLPL is built on top of PMDK's <b>libpmemobj</b> which implements
+a pmem-aware memory allocator, transactions, and a long list of
+other features.  The LLPL repository has already been cloned
+and built for you using these steps:
+<p>
+
+{{output "steps.out" "https://github.com/pmem/llpl.git"}}
+
+<p>
+You can read the examples below, modify them if you like, build them,
+and run them.  Remember you can select <b>Shell Window</b> from the
+menu in the upper left corner and get more hands-on with these examples
+using the Linux shell directly.
+
+{{step "LLPL: Getting Started"}}
+
+<p>
+This is example 1 for LLPL: Getting Started.
+
+{{edit "workshop/Example01_GettingStarted.java"}}
+
+<p>
+Once you've made any edits to the
+above source file, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "scripts/build_GettingStarted.sh"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Example: Getting Started"}}
+
+<p>
+The script below will run this example.  You can modify the script
+and re-run the example as many times as you like.
+
+{{edit "scripts/run_GettingStarted.sh"}}
+
+<p>
+Now you can try running the program using the above script.
+
+{{run "scripts/run_GettingStarted.sh"}}
+
+{{step "LLPL: Sizing Heaps"}}
+
+<p>
+This is example 2 for LLPL: Sizing Heaps.
+
+{{edit "workshop/Example02_SizingHeaps.java"}}
+
+<p>
+Once you've made any edits to the
+above source file, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "scripts/build_SizingHeaps.sh"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Example: Sizing Heaps"}}
+
+<p>
+The script below will run this example.  You can modify the script
+and re-run the example as many times as you like.
+
+{{edit "scripts/run_SizingHeaps.sh"}}
+
+<p>
+Now you can try running the program using the above script.
+
+{{run "scripts/run_SizingHeaps.sh"}}
+
+{{step "LLPL: Using Other Heaps"}}
+
+<p>
+This is example 3 for LLPL: Using Other Heaps.
+
+{{edit "workshop/Example03_UsingOtherHeaps.java"}}
+
+<p>
+Once you've made any edits to the
+above source file, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "scripts/build_UsingOtherHeaps.sh"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Example: Using Other Heaps"}}
+
+<p>
+The script below will run this example.  You can modify the script
+and re-run the example as many times as you like.
+
+{{edit "scripts/run_UsingOtherHeaps.sh"}}
+
+<p>
+Now you can try running the program using the above script.
+
+{{run "scripts/run_UsingOtherHeaps.sh"}}
+
+{{step "LLPL: More On Transactions"}}
+
+<p>
+This is example 4 for LLPL: More On Transactions.
+
+{{edit "workshop/Example04_MoreOnTransactions.java"}}
+
+<p>
+Once you've made any edits to the
+above source file, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "scripts/build_MoreOnTransactions.sh"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Example: More On Transactions"}}
+
+<p>
+The script below will run this example.  You can modify the script
+and re-run the example as many times as you like.
+
+{{edit "scripts/run_MoreOnTransactions.sh"}}
+
+<p>
+Now you can try running the program using the above script.
+
+{{run "scripts/run_MoreOnTransactions.sh"}}
+
+{{step "LLPL: Performance Idioms"}}
+
+<p>
+This is example 5 for LLPL: Performance Idioms.
+
+{{edit "workshop/Example05_PerformanceIdioms.java"}}
+
+<p>
+Once you've made any edits to the
+above source file, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "scripts/build_PerformanceIdioms.sh"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Example: Performance Idioms"}}
+
+<p>
+The script below will run this example.  You can modify the script
+and re-run the example as many times as you like.
+
+{{edit "scripts/run_PerformanceIdioms.sh"}}
+
+<p>
+Now you can try running the program using the above script.
+
+{{run "scripts/run_PerformanceIdioms.sh"}}
+
+{{step "LLPL: Wrapping Memory Blocks"}}
+
+<p>
+This is example 6 for LLPL: Wrapping Memory Blocks.
+
+{{edit "workshop/Example06_WrappingMemoryBlocks.java"}}
+
+<p>
+Once you've made any edits to the
+above source file, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "scripts/build_WrappingMemoryBlocks.sh"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Example: Wrapping Memory Blocks"}}
+
+<p>
+The script below will run this example.  You can modify the script
+and re-run the example as many times as you like.
+
+{{edit "scripts/run_WrappingMemoryBlocks.sh"}}
+
+<p>
+Now you can try running the program using the above script.
+
+{{run "scripts/run_WrappingMemoryBlocks.sh"}}
+
+
+{{summary}}
+
+<p>
+The above examples have provided a brief tour of Low-Level Persistence Library
+for Java, or LLPL.
+
+{{bottom}}

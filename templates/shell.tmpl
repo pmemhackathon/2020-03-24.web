@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>pmem Workshop Shell</title>
+		<link rel="shortcut icon" href="/img/favicon.ico">
+		<link rel="stylesheet" href="/css/webhackathon.css">
+		<link rel="stylesheet" href="/css/shell.css">
+		<link rel="stylesheet" href="/css/xterm.css" />
+		<script>var pmem_ex='{{.Ex}}';</script>
+		<script>var pmem_ws='{{.Ws}}';</script>
+		<script src="/js/jquery-3.4.1.min.js" type="text/javascript" charset="utf-8"></script>
+		<!-- next two lines provide TextEncoder for MSIE -->
+		<script src="/js/encoding-indexes.js" ></script>
+		<script src="/js/encoding.js" ></script>
+		<script src="/js/xterm.js" ></script>
+		<script src="/js/fit.js" ></script>
+		<script src="/js/shell.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<section class="top">
+			<h1>pmem Workshop Shell: {{ .User }}</h1>
+			<div id="xterm"></div>
+		</section>
+	</body>
+</html>

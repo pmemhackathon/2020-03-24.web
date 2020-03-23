@@ -1,0 +1,530 @@
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+	padding: 0;
+	font-family: sans-serif;
+}
+section {
+	clear: left;
+	width: 100%;
+	height: auto;
+	position: relative;
+}
+section h1 {
+	margin: 0;
+	padding: 15px 0 15px 0;
+	width: 100%;
+	font-size: 24px;
+	text-align: center;
+	background: #5f6a6a;
+	color: #fff;
+	position: -webkit-sticky; position: sticky;
+	top: 0;
+	z-index: 50;
+}
+section.top h1 {
+	background: #ba4a00;
+}
+section.summary h1 {
+	background: #117a65;
+}
+footer {
+	clear: left;
+	padding: 700px 0 10px 0;
+	margin: 0;
+	width: 100%;
+	text-align: center;
+	font-size: 16px;
+	color: #a9cce3;
+}
+section {
+	font-size: 16px;
+}
+section p {
+	padding-top: 40px;
+	width: 90%;
+	max-width: 700px;
+	margin: auto;
+}
+section p.intro {
+	width: 80%;
+	font-size: 17px;
+	text-align: center;
+}
+section p.clear {
+	clear: left;
+}
+section ol, section ul {
+	margin: auto;
+	padding-left: 20px;
+	width: 90%;
+	max-width: 650px;
+	position: relative;
+	left: 1em;
+}
+/* give up trying to make ol/ul flow around img on IE */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+	section ol, section ul {
+		clear:left;
+	}
+}
+section li {
+	margin-top: 8px;
+}
+section .figure {
+	float: left;
+	padding: 15px;
+}
+section .leftFigure {
+	float: left;
+	padding-left: 10px;
+}
+div.upperLeftArrowText {
+	padding-top: 75px;
+	color: #ab4400;
+}
+p.tocP {
+	clear: left;
+	margin: 50px auto;
+	width: 75%;
+}
+
+/* ways to show code excerpts */
+.highlight {
+	background-color: lightyellow;
+}
+
+pre.output {
+	font-family: monospace;
+	clear: left;
+	width: 85%;
+	min-width: 600px;
+	font-size: 12px;
+	overflow: scroll;
+	margin: 4em auto;
+	padding: 0.5em;
+	border-radius: .25em;
+	box-shadow: .1em .1em .5em rgba(0,0,0,.45);
+	line-height: 0;
+	counter-reset: line;
+}
+pre.output .pat {
+	display: none;
+}
+pre.output span {
+	display: block;
+	line-height: 1em;
+}
+pre.output span:before {
+	counter-increment: line;
+	content: counter(line);
+	min-width: 2em;
+	text-align: right;
+	display: inline-block;
+	border-right: 1px solid #ddd;
+	padding: 0 .5em;
+	margin-right: .5em;
+	color: #888
+}
+
+/* login form */
+form.login div {
+		font-family: Arial, Helvetica, sans-serif;
+		border: 3px solid black;
+		border-radius: 5px;
+		width: 500px;
+		padding: 25px;
+		margin: auto;
+}
+
+.smallcentered {
+		display: block;
+		font-size: smaller;
+		text-align: center;
+		width: 100%;
+}
+a:link.smallcentered,a:visited.smallcentered {
+	color: #0000ff;
+}
+
+form.login input {
+		width: 100%;
+		padding: 12px 20px;
+		margin: 8px 0;
+		display: inline-block;
+		border: 1px solid #ccc;
+}
+
+form.login button {
+		width: 100%;
+		background-color: #4caf50;
+		color: white;
+		font-weight: bold;
+		padding: 14px 20px;
+		margin: 8px 0;
+		border: none;
+		cursor: pointer;
+}
+form.login button:hover {
+	opacity: 0.8;
+}
+form.login button:focus {
+	outline: 0;
+}
+form.login button::-moz-focus-inner {
+	border: 0;
+}
+p.login {
+	text-align: center;
+	color: #ba4a00;
+}
+p.granted {
+	text-align: center;
+	font-size: larger;
+	color: darkgreen;
+}
+
+/* text containing "Scroll down to continue" */
+div.scrolltocontinue {
+	clear: left;
+	margin: 0;
+	padding-top: 70px;
+	width: auto;
+	text-align: center;
+	font-size: 16px;
+	color: #a9cce3;
+}
+
+/* arrow pointing down, telling user to scroll */
+div.arrow {
+	clear: left;
+	margin: 0;
+	padding-top: 30px;
+	padding-bottom: 100px;
+	width: auto;
+	text-align: center;
+	font-size: 60px;
+	color: #a9cce3;
+}
+
+/* menu button */
+#menu {
+	position: fixed;
+	top: 10px;
+	left: 5px;
+	cursor: pointer;
+	z-index: 100;
+}
+div.menu {
+	width: 35px;
+	height: 5px;
+	background-color: black;
+	margin: 6px 0;
+}
+#dropdown {
+	display: none;
+	position: absolute;
+	left: 5px;
+	background-color: #f9f9f9;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	z-index: 100;
+}
+#dropdown a {
+	color: black;
+	font-size: 10px;
+	padding: 12px 16px;
+	text-decoration: none;
+	display: block;
+}
+#dropdown a:focus {
+	outline: 0;
+}
+#dropdown a::-moz-focus-inner {
+	border: 0;
+}
+#dropdown a:hover {
+	background-color: #c0c0c0;
+}
+
+/* tables used in TOC */
+table.toc {
+	border: 1px solid black;
+	border-spacing: 0;
+	margin: 50px auto;
+	width: 80%;
+	position: relative;
+}
+table.toc th {
+	padding: 20px 10px;
+}
+table.toc td {
+	padding: 15px;
+	background-color: #f0f0ff;
+}
+.badge {
+	position: absolute;
+	top: -1.5em;
+	right: 3px;
+	font-size: 12px;
+	background-color: yellow;
+}
+.badgeText {
+	font-size: 12px;
+	background-color: yellow;
+}
+
+/* run button */
+p.run {
+	text-align: center;
+}
+button.run {
+	clear: left;
+	background-color: #4CAF50;
+	border-radius: 8px;
+	color: white;
+	padding-top: 14px;
+	padding-bottom: 14px;
+	margin: auto;
+	border: 1px solid #0e6251;
+	cursor: pointer;
+	width: 200px;
+}
+button.run:hover {
+	opacity: 0.8;
+}
+button.run:focus {
+	outline: 0;
+}
+button.run::-moz-focus-inner {
+	border: 0;
+}
+
+/* undo/redo/revert buttons */
+div.urr {
+	position: absolute;
+	top: 15px;
+	right: 10px;
+	/* best attempt to disallow selection of the "icons" */
+	-webkit-touch-callout: none; /* ios safari */
+	-webkit-user-select: none; /* safari */
+	-khtml-user-select: none; /* konqueror */
+	-moz-user-select: none; /* firefox */
+	-ms-user-select: none; /* internet explorer & edge */
+	user-select: none; /* chrome & opera */
+}
+div.urr div {
+	position: relative;
+	display: inline-block;
+	color: #f88080;
+	font-size: 20px;
+}
+div.urr div.greyed {
+	color: #e0e0e0;
+}
+div.urr div span {
+	visibility: hidden;
+	width: 120px;
+	background-color: #eded0a;
+	font-size: 10px;
+	color: #000;
+	text-align: center;
+	border-radius: 6px;
+	padding: 5px 0;
+	position: absolute;
+	bottom: 150%;
+	left: 50%;
+	margin-left: -60px;
+	z-index: 150;
+}
+div.urr div span::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: #eded0a transparent transparent transparent;
+}
+div.urr div:hover span {
+	visibility: visible;
+}
+
+/* tabbed source code editing panes */
+div.etabs {
+	clear: left;
+	width: 85%;
+	min-width: 600px;
+	margin: auto;
+	position: relative;
+}
+div.etab {
+	height: 500px;
+	min-height: 500px;
+	max-height: 500px;
+	border: 1px solid black;
+	margin-top: -1px;
+	z-index: 5;
+	overflow: hidden;
+}
+.etab pre {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+}
+.etabs {
+	display: flex;
+	flex-wrap: wrap;
+}
+.etabs label {
+	order: 1;
+	display: block;
+	padding: 1rem 2rem;
+	margin-right: 0.2rem;
+	cursor: pointer;
+	font-weight: bold;
+	font-family: monospace;
+	color: #808080;
+	background: #f0f0f0;
+	border-top: 1px dotted black;
+	border-left: 1px dotted black;
+	border-right: 1px dotted black;
+	border-bottom: 1px solid black;
+	border-top-right-radius: 10px;
+	border-top-left-radius: 10px;
+	z-index: 10;
+}
+.etabs .etab {
+	order: 99;
+	flex-grow: 1;
+	width: 100%;
+	display: none;
+	background: #fff;
+}
+.etabs input[type="radio"] {
+	display: none;
+}
+.etabs input[type="radio"]:checked + label {
+	background: #fff;
+	color: #000;
+	border-top: 1px solid black;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	border-bottom: 1px solid #fff;
+	border-top-right-radius: 10px;
+	border-top-left-radius: 10px;
+}
+.etabs input[type="radio"]:checked + label + .etab {
+	display: block;
+}
+
+/* tabbed run results panes */
+div.rtabs {
+	clear: left;
+	width: 85%;
+	min-width: 600px;
+	margin: auto;
+}
+div.rtab {
+	min-height: 250px;
+	max-height: 400px;
+	border: 1px solid #0e6251;
+	margin-top: -1px;
+	z-index: 5;
+}
+.rtab pre {
+	margin: auto;
+	padding: 10px 20px 10px 20px;
+	width: 100%;
+	height: 100%;
+	background: #e8f8f5;
+	overflow: scroll;
+}
+.rtabs {
+	display: flex;
+	flex-wrap: wrap;
+}
+.rtabs label {
+	order: 1;
+	display: block;
+	padding: 1rem 2rem;
+	margin-right: 0.2rem;
+	cursor: pointer;
+	font-weight: bold;
+	color: #808080;
+	background: #f0f0f0;
+	border-top: 1px dotted #0e6251;
+	border-left: 1px dotted #0e6251;
+	border-right: 1px dotted #0e6251;
+	border-bottom: 1px solid #0e6251;
+	border-top-right-radius: 10px;
+	border-top-left-radius: 10px;
+	z-index: 10;
+}
+.rtabs .rtab {
+	order: 99;
+	flex-grow: 1;
+	width: 100%;
+	display: none;
+	background: #e8f8f5;
+}
+.rtabs input[type="radio"] {
+	display: none;
+}
+.rtabs input[type="radio"]:checked + label {
+	background: #e8f8f5;
+	color: #000;
+	border-top: 1px solid #0e6251;
+	border-left: 1px solid #0e6251;
+	border-right: 1px solid #0e6251;
+	border-bottom: 1px solid #e8f8f5;
+	border-top-right-radius: 10px;
+	border-top-left-radius: 10px;
+}
+.rtabs input[type="radio"]:checked + label + .rtab {
+	display: block;
+}
+.rtabs .cmd {
+	display: none;
+}
+
+/* animated stripes */
+.in-progress {
+	text-shadow: none;
+	background: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent), -webkit-linear-gradient(top, #f6f5f0, #e1e0dc);
+	background: -moz-linear-gradient(-45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent), -moz-linear-gradient(top, #f6f5f0, #e1e0dc);
+	background: -ms-linear-gradient(-45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent), -ms-linear-gradient(top, #f6f5f0, #e1e0dc);
+	background: -o-linear-gradient(-45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent), -o-linear-gradient(top, #f6f5f0, #e1e0dc);
+	background: linear-gradient(-45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent), linear-gradient(top, #f6f5f0, #e1e0dc);
+	-pie-background: linear-gradient(-45deg, rgba(255, 255, 255, 0.6) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.6) 75%, transparent 75%, transparent), linear-gradient(top, #f6f5f0, #e1e0dc);
+	background-repeat: repeat;
+	-webkit-background-size: 40px 40px, 100% 100%;
+	-moz-background-size: 40px 40px, 100% 100%;
+	-ms-background-size: 40px 40px, 100% 100%;
+	-o-background-size: 40px 40px, 100% 100%;
+	background-size: 40px 40px, 100% 100%;
+	-webkit-animation: progress-bar-stripes 2s linear infinite;
+	-moz-animation: progress-bar-stripes 2s linear infinite;
+	-ms-animation: progress-bar-stripes 2s linear infinite;
+	-o-animation: progress-bar-stripes 2s linear infinite;
+	animation: progress-bar-stripes 2s linear infinite;
+}
+
+@-webkit-keyframes progress-bar-stripes {
+	from { background-position: 0 0; }
+	to { background-position: 40px 0; }
+}
+
+@-moz-keyframes progress-bar-stripes {
+	from { background-position: 0 0; }
+	to { background-position: 40px 0; }
+}
+
+@keyframes progress-bar-stripes {
+	from { background-position: 0 0; }
+	to { background-position: 40px 0; }
+}

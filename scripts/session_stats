@@ -1,0 +1,88 @@
+#!/usr/bin/perl
+#
+# session_stats -- spew session stats
+#
+
+use strict;
+use warnings;
+
+$ENV{PATH} = "/bin:/usr/bin:/sbin:/usr/sbin";
+umask 077;
+
+my $Me = $0;
+$Me =~ s,.*/,,;
+
+$SIG{HUP} = $SIG{INT} = $SIG{TERM} = $SIG{__DIE__} = sub {
+	die @_ if $^S;
+
+	my $errstr = shift;
+
+	die "$Me: ERROR: $errstr";
+};
+
+sub snarf {
+	my ($file) = @_;
+	local $/;
+	my $contents;
+
+	open(SNARFFILE, $file) or die "$file: $!\n";
+
+	$contents = <SNARFFILE>;
+
+	close(SNARFFILE);
+
+	return $contents;
+}
+
+use File::Find;
+use JSON qw (decode_json);
+
+my $pid = `pgrep webhackathon`;
+die "webhackathon daemon not running.\n" unless ($? >> 8) == 0;
+chomp $pid;
+
+system("ps --pid $pid -o user:12,pid,args");
+
+print "\n";
+system("ps --ppid $pid -o user:12,pid,args");
+
+print "\n";
+
+# array of hashes:
+#	each entry in an array is a record (hash) holding a session
+#	each record has an "mtime" key and a "user" key
+my @sessions;
+find(sub {
+	return unless /^[[:xdigit:]]{8}(-[[:xdigit:]]{4}){3}-[[:xdigit:]]{12}$/;
+
+	my ($dev, $ino, $mode, $nlink, $uid, $gid, $rdev, $size,
+		$atime, $mtime, $ctime, $blksize, $blocks) = stat($File::Find::name);
+
+	my $fromJSON = decode_json(snarf($File::Find::name));
+
+	my $s = {};
+	$s->{user} = $fromJSON->{user};
+	$s->{mtime} = $mtime;
+
+	push(@sessions, $s);
+}, '/home/hackathon/sessions');
+
+print "How Long Ago    User Session\n";
+my $now = time();
+foreach my $s (sort { $b->{mtime} <=> $a->{mtime} } @sessions) {
+	my $ago = $now - $s->{mtime};
+	my $suffix = 's';	# seconds
+
+	if ($ago > (60 * 60 * 24)) {
+		$suffix = 'd';	# days
+		$ago = int($ago / (60 * 60 * 24));
+	} elsif ($ago > (60 * 60)) {
+		$suffix = 'h';	# hours
+		$ago = int($ago / (60 * 60));
+	} elsif ($ago > 120) {
+		$suffix = 'm';	# minutes
+		$ago = int($ago / 60);
+	}
+
+	printf '  %5d%s        %s' . "\n", $ago, $suffix, $s->{user};
+}

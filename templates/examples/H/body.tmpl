@@ -1,0 +1,67 @@
+{{top "Using pmemcheck"}}
+
+<p class="intro">
+The <b>pmemcheck</b> plugin to the popular <code>valgrind</code>
+utility can help find persistent memory programming errors.
+<p class="intro">
+This example is intended for C and C++ programmers.
+
+{{template "scrollToContinue"}}
+
+<p>
+The PMDK developers worked hard to detect as many programming errors
+at compile time as possible.  This was especially successul in C++,
+where the type system helps with pmem programming error detection.
+However, there are a class of problems that are too difficult to
+detect at compile time (at least not without complex compiler
+changes).  The <code>valgrind</code> tool is very popular on Linux
+for finding memory leaks and other programming errors.  The PMDK
+team provides a plugin called <b>pmemcheck</b> which can detect the
+most common pmem issues.
+
+{{step "Find Some Common Bugs"}}
+
+<p>
+The program below contains five persistent memory programming bugs.
+See if you can find them and fix them.  Use the output of valgrind
+to tell you where the bugs are.
+<p>
+You can edit the program below and make changes if you'd like to
+experiment, or just run it as-is.
+
+{{edit "find_bugs.cpp" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Program"}}
+
+<p>
+The script below will run the program under pmemcheck.
+
+{{edit "run.sh"}}
+
+<p>
+Now you can try running the program.
+
+{{run "./run.sh"}}
+
+{{summary}}
+
+<p>
+Were you able to fix some or all the bugs?  Understanding the
+<b>pmemcheck</b> output can take some practice.  The repo contains a
+<a href="/repo/examples/H/find_bugs_fixed.cpp" target="_new">fixed version</a>
+of the program, so you can see how
+well you did.
+
+{{bottom}}

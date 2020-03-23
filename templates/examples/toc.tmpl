@@ -1,0 +1,74 @@
+{{define "tocPageStart"}}
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>pmem Workshop Login</title>
+		<link rel="shortcut icon" href="/img/favicon.ico">
+		<link rel="stylesheet" href="/css/webhackathon.css">
+		<script src="/js/jquery-3.4.1.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="/js/jquery.stickybits.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="/js/ace-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+		<script src="/js/examples.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<div id="menu">
+			<div class="menu"></div>
+			<div class="menu"></div>
+			<div class="menu"></div>
+			<div id="dropdown">
+				<a href="/repo/slides.pdf" target="_new">Background&nbsp;Slides</a>
+				<a href="/repo/" target="_new">Browse&nbsp;Your&nbsp;Repo&nbsp;Clone</a>
+				<a href="/shell/" target="_new">Shell&nbsp;Window</a>
+				<a href="/logout/">Logout {{.User}}</a>
+			</div>
+		</div>
+		<section class="top">
+			<h1>List of Examples in this Workshop</h1>
+			{{if lt .TocCount 1}}
+			<img src="/img/examples/upperLeftArrow.jpg" class="leftFigure"><div class="upperLeftArrowText">Use the menu to view background slides at any time</div>
+			{{end}}
+			<p class="tocP">
+			The {{.ExampleCount}} examples from the
+			<a href="https://github.com/pmemhackathon/{{.Repo}}" target="_new">{{.Repo}}</a>
+			repository on GitHub are listed below.  A clone of
+			the repo has been created for {{.User}} so you
+			can make changes and experiment with the examples.
+			Use the examples as starting points for your own
+			programs.
+			<p>
+			You are welcome to go through the examples in
+			any order.  The examples marked
+			<span class="badgeText">Recommended</span>
+			provide some essential background that the
+			other examples build on.
+{{end}}
+
+{{define "tocPageEnd"}}
+		</section>
+	</body>
+</html>
+{{end}}
+
+{{define "tocEntryStart"}}
+<table class="toc">
+{{end}}
+
+{{define "tocShortText"}}
+<tr><th><a href="/examples/{{.Ex}}">Example&nbsp;{{.Ex}}:&nbsp;
+{{end}}
+
+{{define "tocLongText"}}
+</a>
+</th></tr>
+<tr><td>
+{{end}}
+
+{{define "tocEntryEnd"}}
+</td></tr>
+</table>
+{{end}}
+
+{{define "tocRecommended"}}
+<div class="badge">Recommended</div>
+{{end}}

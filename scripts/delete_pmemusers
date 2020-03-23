@@ -1,0 +1,88 @@
+#!/usr/bin/perl
+#
+# delete_pmemusers
+#
+# run once per hackathon after everyone is done and all user files
+# can be deleted.
+#
+
+use strict;
+use warnings;
+
+$ENV{PATH} = "/bin:/usr/bin:/sbin:/usr/sbin";
+umask 077;
+
+my $Me = $0;
+$Me =~ s,.*/,,;
+
+# hackathon UID and GID are $BASEID, pmemusers number up from there
+my $BASEID = 5000;
+
+$SIG{HUP} = $SIG{INT} = $SIG{TERM} = $SIG{__DIE__} = sub {
+	die @_ if $^S;
+
+	my $errstr = shift;
+
+	die "$Me: ERROR: $errstr";
+};
+
+sub say {
+	print "$Me: ", @_, "\n";
+}
+
+sub yorn {
+	my ($prompt) = @_;
+	my $input;
+
+	print "$Me: ", $prompt, ' [nyq] ';
+
+	if (defined($input = <STDIN>)) {
+		exit 0 if $input =~ /^q/i;
+		return 1 if $input =~ /^y/i;
+	} else {
+		print "quit.\n";
+		exit 0;
+	}
+
+	return 0;
+}
+
+sub run {
+	my ($cmd) = @_;
+
+	if (yorn("run command \"$cmd\"?")) {
+		say("running: $cmd");
+		system($cmd);
+		die "unexpected exit code: $?\n" if ($? >> 8);
+		say('command successful');
+	}
+}
+
+sub runy {
+	my ($cmd) = @_;
+
+	system($cmd);
+	die "unexpected exit code: $? for command \"$cmd\"\n" if ($? >> 8);
+}
+
+die "must run this script as root\n" if ($>);
+
+my $H = '/home/hackathon';
+my $P = '/pmem';
+
+# verify minimal environment exists
+die "$H directory not found\n" unless -d $H;
+
+run("rm -rf /home/hackathon/users");
+run("rm -rf /pmem/pmemuser*");
+run("rm -rf /var/mail/pmemuser*");
+for (my $id = 1; $id <= 200; $id++) {
+	my $thisid = $BASEID + $id;
+	my $user = "pmemuser$id";
+	say("deleting $user");
+	system("userdel $user");
+	system("groupdel $user");
+}
+
+say('done');
+exit 0;

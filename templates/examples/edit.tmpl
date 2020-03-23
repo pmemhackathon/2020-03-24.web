@@ -1,0 +1,25 @@
+{{/*
+   *	edit.tmpl implements the multi-tab edit boxes.
+   *	Each multi-tab edit box starts with the "editStart" template, then
+   *	one "editTab" template for each file in the edit box, then the
+   *	"editEnd" template.
+   *
+   */}}
+
+{{define "editStart"}}
+			<p>
+			<div class="etabs">
+<div id="etabs{{.Etab}}_urr" class="urr"><div>&#10226;<span>undo</span></div><div>&#10227;<span>redo</span></div><div>&#8999;<span>revert all changes</span></div></div>
+{{end}}
+
+{{define "editTab"}}
+				<input type="radio" name="etabs{{.Etab}}" id="etabs{{.Etab}}_{{.FileNum}}"{{if .Front}} checked="checked"{{end}}>
+				<label for="etabs{{.Etab}}_{{.FileNum}}">{{.FileName}}</label>
+				<div class="etab">
+<pre id="editor_e{{.Etab}}_{{.FileNum}}">{{.FileContents}}</pre>
+				</div>
+{{end}}
+
+{{define "editEnd"}}
+			</div>
+{{end}}

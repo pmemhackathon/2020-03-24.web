@@ -1,0 +1,7 @@
+*~
+*.swp
+*.o
+make.out
+core
+a.out
+users

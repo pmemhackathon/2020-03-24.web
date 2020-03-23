@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>pmem Workshop Login Information</title>
+		<link rel="shortcut icon" href="/img/favicon.ico">
+		<link rel="stylesheet" href="/css/webhackathon.css">
+	</head>
+	<body>
+		<section class="top">
+			<h1>pmem Workshop Login Information</h1>
+			<p class="granted">
+			Here is your login information for this workshop.<br>
+			Please write down your Username and Password.<br>
+			(Hint: just take a picture of this screen with your phone!)
+			<p>
+			<form class="login" action="/" method="post" onsubmit="this.js_enabled.value=1;return true;">
+			<input type="hidden" name="js_enabled" value="0">
+			<div>
+				<label for="user"><b>Username</b></label>
+				<input type="text" value={{.User}} name="user" readonly>
+				<label for="passwd"><b>Password</b></label>
+				<input type="text" value={{.Passwd}} name="passwd" readonly>
+				<button type="submit">Login</button>
+				<p class="smallcentered">Server:&nbsp;<tt>{{.Server}}</tt></p>
+			</div>
+			</form>
+		</section>
+	</body>
+</html>

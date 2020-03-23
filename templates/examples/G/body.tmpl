@@ -1,0 +1,68 @@
+{{top "Using pmem as Volatile Memory"}}
+
+<p class="intro">
+Many applications use persistent memory as a second tier
+of volatile memory.  Where DRAM is fast (but expensive),
+pmem is cheaper, larger (but slower).
+Applications put the latency-sensitive data structures
+in DRAM, and the less latency-sensitive data structures in pmem.  This allows
+memory-hungry applications to see a much larger capacity for a lower cost,
+while maintaining their performance goals.
+<p class="intro">
+This example is intended for C programmers.
+
+{{template "scrollToContinue"}}
+
+<p>
+Using pmem as volatile memory is almost as easy as using
+the vanilla libc <code>malloc</code> and <code>free</code>
+interfaces.  The <b>libmemkind</b> library provides these
+familiar interfaces, but with an additional argument
+which specifies the <i>kind</i> of memory desired.
+
+{{step "Low-Level Programming in C"}}
+
+<p>
+The <a href="http://memkind.github.io/memkind/man_pages/memkind.html" target="_new">memkind man page</a>
+contains the full details, but the example program below
+provides a simple overview showing how a program can mix
+DRAM allocations and pmem allocations.
+<p>
+You can edit the program below and make changes if you'd like to
+experiment, or just run it as-is.
+
+{{edit "volatile.c" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Program"}}
+
+<p>
+You can edit the script below and run it as much as you like,
+to experiment with different versions.
+
+{{edit "run.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run.sh"}}
+
+{{summary}}
+
+<p>
+This example showed how to use <b>libmemkind</b> for volatile
+persistent memory programming. There's no persistence in this
+example, so nothing related to flushing or transactions.
+
+{{bottom}}

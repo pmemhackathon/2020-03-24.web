@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>pmem Workshop Request Access</title>
+		<link rel="shortcut icon" href="/img/favicon.ico">
+		<link rel="stylesheet" href="/css/webhackathon.css">
+	</head>
+	<body>
+		<section class="top">
+			<h1>pmem Workshop Request Access</h1>
+			<p class="login">
+			{{.}}
+			<p>
+			<form class="login" method="post" onsubmit="this.js_enabled.value=1;return true;">
+			<input type="hidden" name="js_enabled" value="0">
+			<div>
+				<label for="name"><b>Your&nbsp;name</b></label>
+				<input type="text" placeholder="Enter your name" name="name" required>
+				<label for="workshop"><b>Workshop ID</b></label>
+				<input type="text" placeholder="Enter Workshop ID" name="workshop" required>
+				<button type="submit">Request Access</button>
+				<br><br><hr><br><br>
+				<a class="smallcentered" href="/logout/">Cancel</a>
+			</div>
+			</form>
+		</section>
+	</body>
+</html>

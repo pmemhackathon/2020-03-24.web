@@ -1,0 +1,113 @@
+{{top "The libpmemkv Key-Value Store"}}
+
+<p class="intro">
+Persistent memory programming sounds very
+complex and error-prone when you first
+hear all the details.  This example shows
+this need not be the case.
+<p class="intro">
+In this example, a simple API is shown
+that provides a key-value store on pmem.
+
+{{template "scrollToContinue"}}
+
+<p>
+<img src="/img/examples/{{.Ex}}/typical-kv.jpg" class="figure">
+<p>
+A typical key-value store uses a <i>buffer based</i> API,
+where the keys and values are kept on storage and moved
+into memory buffers when you access them.
+When using storage, there's no choice -- you cannot access
+the data directly on the persistent storage media, since
+storage can only be accessed using block I/O.
+<p class="clear">
+<img src="/img/examples/{{.Ex}}/pmem-kv.jpg" class="figure">
+<p>
+With persistent memory we can change how a key-value store works.
+Since persistent memory is byte-addressable, we can define a
+key-value API that allows us to access the data in-place, rather
+than copying it to memory buffers.
+<p class="clear">
+<img src="/img/examples/{{.Ex}}/kv-full-stack.jpg" class="figure">
+<p class="clear">
+The PMDK library called <b>libpmemkv</b> is a key-value store
+written for persistent memory.
+The pmemkv library uses a concurrent hashmap written on top of
+<b>libpmemobj</b>, which itself is built on top of <b>libpmem</b>.
+These libraries all build on the SNIA programming model for
+persistent memory, which exposes pmem as memory-mapped files
+as described in <a href="A">Example A</a>.
+<p class="clear">
+This may sound like many layers of SW between the application
+and the data, but PMDK libraries are designed to provide <i>direct access</i>
+to your data structures.  You only use the APIs as necessary to
+get the direct access.
+
+{{step "Using libpmemkv in C++"}}
+
+<p>
+A simple C++ program that illustrates <b>libpmemkv</b> is provided
+below.  The most important calls to look for are <code>kv->put()</code>,
+<code>kv->get()</code>, and
+<code>kv->get_all()</code>.
+<p>
+You can edit the program below and make changes if you'd like to
+experiment, or just run it as-is.
+
+{{edit "pmemkv.cpp" "kvinit.cpp" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Program"}}
+
+<p>
+This example runs three different ways,
+depending on the command-line arguments:
+<ul>
+<li><tt>pmemkv pmemfile</tt> <i>(print all k-v pairs)</i>
+<li><tt>pmemkv pmemfile key</tt> <i>(print the value)</i>
+<li><tt>pmemkv pmemfile key value</tt> <i>(add a k-v pair)</i>
+</ul>
+<p>
+You can edit the script below and run it
+again and again, to experiment with different commands.
+
+{{edit "run.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run.sh"}}
+
+<p>
+Like all examples in this workshop, any changes you make
+are to your own clone of the repository.  Your
+clone is on the workshop server and you can browse it
+directly and download any files you want to keep using
+the menu in the upper left corner of the page.
+
+{{summary}}
+
+<p>
+This example showed how high-level APIs like those provided
+by <b>libpmemkv</b> make persistent memory programming
+much easier.  The caller of this API doesn't know or care
+about things like using <code>mmap()</code>, flushing
+caches, or implementing transactions.  The library takes
+care of all that.
+<p>
+Continue on to the <a href="C">next example</a> to see
+how <b>libpmemobj</b> allows programmers to create their
+own transactional data structures in persistent memory.
+
+{{bottom}}

@@ -1,0 +1,12 @@
+			<p class="run">
+			<button type="button" class="run" id="build{{.Etab}}">Click&nbsp;to&nbsp;build&nbsp;program</button>
+			<p>
+			<div class="rtabs">
+				<input type="radio" name="rtabs{{.Etab}}" id="rtabs{{.Etab}}" checked="checked">
+				<label for="rtabs{{.Etab}}">Build&nbsp;results</label>
+				<div class="rtab">
+<pre id="build{{.Etab}}"><font style="color:#404040">Click button above to build</font></pre>
+				</div>
+				<div id="cmd{{.Etab}}" class="cmd">{{.Command}}</div>
+			</div>
+

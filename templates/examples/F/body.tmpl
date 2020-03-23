@@ -1,0 +1,122 @@
+{{top "Low-Level Persistent Memory Hacking"}}
+
+<p class="intro">
+In <a href="A">Example A</a> we showed how
+persistent memory is exposed to application as memory-mapped
+files.  Applications use <code>mmap()</code> to access it.
+For programmers who want raw access to persistent memory,
+with no allocation or transaction help, there are
+some application responsibilities you must follow.
+<p class="intro">
+This example shows how to use raw access to
+persistent memory using C and <b>libpmem</b>.
+
+{{template "scrollToContinue"}}
+
+<p>
+Remember that cache flushing is not transactional.  When
+a program stores to persistent memory, and those stores
+are sitting in the CPU cache, they may be evicted at any
+time, in any order, by system cache pressure.  And if the
+program or system crashes, any number of unflushed stores
+may be lost.  Only after a successful flush operation
+are the stores known to be persistent.
+
+{{step "Persistent Memory on x86"}}
+
+<p>
+For low-level persistent memory hacking, let's start with
+details on how the platform works.  There are two main
+considerations:
+<p>
+<ul>
+<li>Is it safe to flush from user space?
+<li>What flushing methods are available in user space?
+</ul>
+<p>
+When using memory-mapped files on Linux, it is always safe
+to flush stores to persistence POSIX interfaces like <code>msync()</code>.
+For performance, applications can flush changes directly from
+user space, but this ability must be negotiated with the kernel
+first.  This is done using the <code>MAP_SYNC</code> flag to
+<tt><a href="http://man7.org/linux/man-pages/man2/mmap.2.html" target="_new">mmap()</a></tt>
+(click to see the man page in a new window).  It is only safe to
+flush from user space if a <code>MAP_SYNC</code> mapping is
+granted by the kernel.
+<p>
+<img src="/img/examples/{{.Ex}}/x86.jpg" class="figure">
+<p class="clear">
+Once an application has determined it is safe to flush from user space,
+it must determine if CPU cache flushes are required by the platform.  This
+is done by examining an ACPI property that indicates if the CPU caches
+are considered persistent.  This is a future feature for
+persistent memory platforms, but all software written should
+consider this information immediately.
+<p>
+As shown in the figure above, when cache flushing is necessary, there
+are several instructions available to do it.  The most common instruction
+for this is <code>CLWB</code>.  Another method is to use
+<i>non-temporal stores</i> which bypass the CPU cache.
+<p>
+Checking all these things at application start-up time is mundane
+and not worth re-inventing for your application.  Even if you don't
+need any of the other features of PMDK like allocation or transactions,
+you will still want <b>libpmem</b> to handle these platform-specific
+details.
+
+{{step "Low-Level Programming in C"}}
+
+<p>
+A simple C program using <b>libpmem</b> is shown below.  Notice the
+<code>is_pmem</code> and how it is used to determine if it is safe to
+flush from user space.  To flush from user space, the function
+<tt><a href="http://pmem.io/pmdk/manpages/linux/master/libpmem/pmem_flush.3" target="_new">pmem_persist()</a></tt>
+is used.
+<p>
+<b>libpmem</b> also provides optimal ways to copy data to persistent
+memory and make it persistent.  For example, see the call to
+<code>pmem_memcpy_persist()</code> on line 61 below.
+The <a href="http://pmem.io/pmdk/manpages/linux/master/libpmem/libpmem.7.html" target="_new">libpmem man page</a>
+provides the full list of available functions in the library.
+<p>
+You can edit the program below and make changes if you'd like to
+experiment, or just run it as-is.
+
+{{edit "lowlevel.c" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Program"}}
+
+<p>
+You can edit the script below and run it as much as you like,
+to experiment with different versions.
+
+{{edit "run.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run.sh"}}
+
+{{summary}}
+
+<p>
+This example showed how to use <b>libpmem</b> for low-level
+persistent memory programming.  There are no transactions
+at this level, and the programmer is responsible for keeping
+track of which ranges of persistent memory are in-use, and which
+are free.  Other libraries are available in PMDK to handle these
+tasks for you, such as <b>libpmemobj</b>.
+
+{{bottom}}

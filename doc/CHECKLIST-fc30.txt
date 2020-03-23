@@ -1,0 +1,63 @@
+To configure a vanilla Fedora 30 installation to a webhackathon server,
+follow this checklist.
+
+0. Start with a fresh Fedora 30 install.  If you port this SW to another
+   distro/version, create a new checklist for it and try not to change things
+   in a way that breaks Fedora 30.
+
+1. Install the basics you care about, something like:
+	dnf git install ipmctl ndctl sudo vim-enhanced
+	# fc30 timedatectl bug workaround:
+		cd /etc
+		rm localtime
+		ln -s ../usr/share/zoneinfo/MST7MDT localtime
+	make sure the machine has a DNS entry
+
+2. Arrange for NetworkManager to treat docker networks as unmanaged:
+	/etc/NetworkManager/NetworkManager.conf:
+		[main]
+		plugins=keyfile
+
+		[keyfile]
+		unmanaged-devices=interface-name:veth*
+	systemctl restart NetworkManager
+
+3. Install docker:
+	# following instructions from:
+	# https://docs.docker.com/install/linux/docker-ce/fedora/
+	# https://docs.docker.com/install/linux/linux-postinstall/
+	dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+	# docker repo doesn't have builds for fc30 yet, so use fc29's
+	dnf install docker-ce docker-ce-cli containerd.io --releasever=29
+	systemctl start docker
+	systemctl enable docker
+	# test it
+	docker run hello-world
+
+4. Allow ports 80 and 443 through Fedora's firewall:
+	firewall-cmd --state
+	firewall-cmd --list-ports
+	firewall-cmd --list-services
+	# run once to change it at run-time, once to make it permanent
+	firewall-cmd --add-service=http
+	firewall-cmd --add-service=http --permanent
+	firewall-cmd --add-service=https
+	firewall-cmd --add-service=https --permanent
+
+5. Install an https cert:
+	dnf install certbot
+	certbot certonly --standalone
+	# webhackathon daemon will expect certs where certbot puts them:
+	#	/etc/letsencrypt/live/<host>.<domain>/*.pem
+	# crontab entry to renew each month as described here:
+		https://certbot.eff.org/lets-encrypt/fedora-other
+
+6. Add a root cron job to expire old webhackathon sessions:
+	crontab -e
+		@daily root find /home/hackathon/sessions -mtime +1 -type f -delete
+
+7. Install webhackathon software:
+	(non-root) clone the webhackathon repo in your home dir
+	(non-root) clone the YYYY-MM-DD repo in your home dir
+	(root) from root of webhackathon repo, run scripts/create_hackathon_account
+		repeat this, fixing issues, until all the steps are successful

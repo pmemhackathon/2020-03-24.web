@@ -1,0 +1,40 @@
+#
+#	hackathon user's .gitconfig
+#
+[user]
+	name = Pmem Hacker
+	email = pmemuser@localhost
+
+[apply]
+	whitespace = fix
+
+[core]
+	pager = less
+	editor = vim
+
+[alias]
+	st = status --untracked-files
+
+[push]
+	default = simple
+
+[color]
+	ui = true
+
+[color "branch"]
+	current = yellow black
+	local = yellow
+	remote = magenta
+
+[color "diff"]
+	meta = white bold
+	frag = magenta
+	old = yellow
+	new = green
+	whitespace = white reverse
+
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan reverse
+	branch = magenta

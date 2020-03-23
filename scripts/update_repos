@@ -1,0 +1,104 @@
+#!/usr/bin/perl
+#
+# update_repos lo hi repo
+#
+# if you replace the repo (i.e. /home/hackathon/YYYY-MM-DD), you can
+# use this script to nuke and copy in the new repo for each user.
+#
+# this is *destructive* -- the previous user repos are deleted.
+#
+# undoing this script is done by:
+#	update_repos
+#
+
+use strict;
+use warnings;
+
+$ENV{PATH} = "/bin:/usr/bin:/sbin:/usr/sbin";
+umask 077;
+
+my $Me = $0;
+$Me =~ s,.*/,,;
+
+# hackathon UID and GID are $BASEID, pmemusers number up from there
+my $BASEID = 5000;
+
+die "usage: $Me lo hi repo\n" unless $#ARGV == 2;
+my $Lo = $ARGV[0];
+my $Hi = $ARGV[1];
+die "lo argument must be numeric\n", unless $Lo =~ /^[1-9][0-9]{0,3}$/;
+die "hi argument must be numeric\n", unless $Hi =~ /^[1-9][0-9]{0,3}$/;
+die "lo ($Lo) must be <= hi ($Hi)\n", unless $Lo <= $Hi;
+my $Repo = $ARGV[2];
+
+if ($Lo == $Hi) {
+	say("user to update pmemuser$Lo");
+} else {
+	say("users to update pmemuser$Lo through pmemuser$Hi");
+}
+
+$SIG{HUP} = $SIG{INT} = $SIG{TERM} = $SIG{__DIE__} = sub {
+	die @_ if $^S;
+
+	my $errstr = shift;
+
+	die "$Me: ERROR: $errstr";
+};
+
+sub say {
+	print "$Me: ", @_, "\n";
+}
+
+sub yorn {
+	my ($prompt) = @_;
+	my $input;
+
+	print "$Me: ", $prompt, ' [nyq] ';
+
+	if (defined($input = <STDIN>)) {
+		exit 0 if $input =~ /^q/i;
+		return 1 if $input =~ /^y/i;
+	} else {
+		print "quit.\n";
+		exit 0;
+	}
+
+	return 0;
+}
+
+sub runy {
+	my ($cmd) = @_;
+
+	system($cmd);
+	die "unexpected exit code: $? for command \"$cmd\"\n" if ($? >> 8);
+}
+
+die "must run this script as root\n" if ($>);
+
+my $H = '/home/hackathon';
+
+# verify minimal environment exists
+die "$H directory not found\n" unless -d $H;
+die "$H/users directory not found\n" unless -d "$H/users";
+
+die "repo $H/$Repo not found\n" unless -d "$H/$Repo";
+say("Repo: $H/$Repo");
+
+umask 022;
+
+if (!yorn("delete old user repos (cannot be undone)?")) {
+	exit 0;
+}
+
+for (my $id = $Lo; $id <= $Hi; $id++) {
+	my $thisid = $BASEID + $id;
+	my $user = "pmemuser$id";
+	say("updating $user");
+
+	runy("rm -rf $H/users/$user/home/$Repo");
+	runy("cp -r --preserve=mode $H/$Repo $H/users/$user/home");
+	runy("chown -R $thisid:$thisid $H/users/$user/home/$Repo");
+}
+
+say('done');
+exit 0;

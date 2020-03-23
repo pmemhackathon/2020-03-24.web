@@ -1,0 +1,183 @@
+#!/usr/bin/perl
+#
+# create_hackathon_account
+#
+# run once when setting up a machine.  creates hackathon account and copies
+# in all the files.  idempotent.
+#
+# undoing this script is done by:
+# 	userdel -r hackathon
+# 	removing the hackathonsh line from /etc/shells
+#
+
+use strict;
+use warnings;
+
+$ENV{PATH} = "/bin:/usr/bin:/sbin:/usr/sbin";
+umask 077;
+
+my $Me = $0;
+$Me =~ s,.*/,,;
+
+# hackathon UID and GID are $BASEID, pmemusers number up from there
+my $BASEID = 5000;
+
+$SIG{HUP} = $SIG{INT} = $SIG{TERM} = $SIG{__DIE__} = sub {
+	die @_ if $^S;
+
+	my $errstr = shift;
+
+	die "$Me: ERROR: $errstr";
+};
+
+sub say {
+	print "$Me: ", @_, "\n";
+}
+
+sub yorn {
+	my ($prompt) = @_;
+	my $input;
+
+	print "$Me: ", $prompt, ' [nyq] ';
+
+	if (defined($input = <STDIN>)) {
+		exit 0 if $input =~ /^q/i;
+		return 1 if $input =~ /^y/i;
+	} else {
+		print "quit.\n";
+		exit 0;
+	}
+
+	return 0;
+}
+
+sub run {
+	my ($cmd) = @_;
+
+	if (yorn("run command \"$cmd\"?")) {
+		say("running: $cmd");
+		system($cmd);
+		die "unexpected exit code: $?\n" if ($? >> 8);
+		say('command successful');
+	}
+}
+
+die "must run this script as root\n" if ($>);
+
+# verify we're in the tree full of hackathon source files
+die "./hackathon.skel directory not found\n" unless -d 'hackathon.skel';
+die "./css directory not found\n" unless -d 'css';
+die "./img directory not found\n" unless -d 'img';
+die "./js directory not found\n" unless -d 'js';
+die "./templates directory not found\n" unless -d 'templates';
+die "./users.skel directory not found\n" unless -d 'users.skel';
+
+my $passwd = `grep '^hackathon:' /etc/passwd`;
+my $nopasswd = $? >> 8;
+chomp($passwd);
+my $shadow = `grep '^hackathon:' /etc/shadow`;
+my $noshadow = $? >> 8;
+chomp($shadow);
+my $group = `grep '^hackathon:' /etc/group`;
+my $nogroup = $? >> 8;
+chomp($group);
+my $nohome = !-d '/home/hackathon';
+
+my $passwd_uid;
+my $passwd_gid;
+my $group_gid;
+
+my $idcheck = 0;	# true if we pass the id checks below
+if (!$nopasswd && !$nogroup) {
+	my @pfields = split(/:/, $passwd);
+	my @gfields = split(/:/, $group);
+	$passwd_uid = $pfields[2];
+	$passwd_gid = $pfields[3];
+	$group_gid = $gfields[2];
+	if ($passwd_uid eq $BASEID &&
+			$passwd_gid eq $BASEID && $group_gid eq $BASEID) {
+		$idcheck = 1;
+	}
+}
+
+umask 022;
+if ($nopasswd && $noshadow && $nogroup && $nohome) {
+	say("no existing hackthon account found");
+	run("groupadd -g $BASEID hackathon");
+	run("useradd -u $BASEID -g $BASEID -d /home/hackathon -m -k hackathon.skel -s /usr/sbin/nologin hackathon");
+	run("chmod 755 /home/hackathon");
+} elsif (!$nopasswd && !$noshadow && !$nogroup && !$nohome && $idcheck) {
+	say("existing hackthon account found");
+} else {
+	say("ERROR: partial hackathon account found:");
+	if ($nopasswd) {
+		print("\thackathon not found in /etc/passwd\n");
+	} else {
+		print("\t/etc/passwd: $passwd\n");
+		print("\tBAD UID: $passwd_uid\n") if $passwd_uid ne $BASEID;
+		print("\tBAD GID: $passwd_gid\n") if $passwd_gid ne $BASEID;
+	}
+	if ($noshadow) {
+		print("\thackathon not found in /etc/shadow\n");
+	} else {
+		print("\t/etc/shadow $shadow\n");
+	}
+	if ($nogroup) {
+		print("\thackathon not found in /etc/group\n");
+	} else {
+		print("\t/etc/group $group\n");
+		print("\tBAD GID: $group_gid\n") if $group_gid ne $BASEID;
+	}
+	if ($nohome) {
+		print("\t/home/hackthon not found\n");
+	} else {
+		print("\t/home/hackthon already exists\n");
+	}
+	say("FIX BY HAND: remove partial account");
+	exit 1;
+}
+
+foreach my $d ('css', 'img', 'js', 'templates', 'users.skel', 'webhackathon') {
+	if (-e "/home/hackathon/$d") {
+		say("checking /home/hackathon/$d...");
+		system("diff -r --brief $d /home/hackathon/$d");
+		if ($? >> 8) {
+			# differences found
+			# XXX if diff found something, should we remove
+			# XXX the destination before copying?  otherwise
+			# XXX diff will continue finding the file that
+			# XXX should be deleted from the destination...
+			run("cp -r --preserve=mode $d /home/hackathon \&\& chown -R hackathon:hackathon /home/hackathon/$d");
+		} else {
+			say("($d is up to date)");
+		}
+	} else {
+		# doesn't already exist
+		run("cp -r --preserve=mode $d /home/hackathon \&\& chown -R hackathon:hackathon /home/hackathon/$d");
+	}
+}
+
+system("cmp -s hackathonsh/hackathonsh /home/hackathon/hackathonsh");
+if ($? >> 8) {
+	# differences found or it doesn't already exist
+	run("cp hackathonsh/hackathonsh /home/hackathon \&\& chown root:hackathon /home/hackathon/hackathonsh \&\& chmod 4755 /home/hackathon/hackathonsh");
+} else {
+	say("(hackathonsh is up to date)");
+}
+
+my $shells = `grep '^/home/hackathon/hackathonsh\$' /etc/shells`;
+my $noshells = $? >> 8;
+chomp($shells);
+
+if ($noshells) {
+	if (yorn('add /home/hackathon/hackathonsh to /etc/shells?')) {
+		open(SHELLS, ">>/etc/shells") or die "/etc/shells: $!\n";
+		print SHELLS "/home/hackathon/hackathonsh\n";
+		close(SHELLS);
+	}
+} else {
+	say('(/etc/shells is already updated)');
+}
+
+say('done');
+exit 0;

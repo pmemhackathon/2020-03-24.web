@@ -1,0 +1,77 @@
+{{top "A C++ Word Frequency Count Program"}}
+
+<p class="intro">
+Building on the <a href="D">previous example</a>, we
+show a C++ version of the same task, a word
+frequency counter.
+<p class="intro">
+The first thing you'll see in this C++ example is
+that the type system in C++ allows us to get rid of
+all the ugly C macros used for persistent memory programming
+with <b>libpmemobj</b>.
+
+{{template "scrollToContinue"}}
+
+<p>
+All the background information about the C++ version
+is essentially the same as the
+C version: the same hash table, updating algorithm, and so on.
+In the C version we used the macro <code>TOID</code> to declare
+Object IDs for specific types.  In C++, we use the template
+<code>persistent_ptr&lt;&gt;</code> to achieve this.  Fields
+of our <code>struct entry</code> that are stored in pmem are declared
+using the template <code>p&lt;&gt;</code>.
+<p>
+Instead of macros to begin and end a transaction, we use C++ lambdas
+and pass them to <code>transaction::run</code> as we described
+in <a href="C">Exercise C</a>.
+<p>
+You may find the
+<a href="/repo/libpmemobj-cpp.pdf" target="_new">libpmemobj-cpp slides</a>
+useful for some additional background.
+The <a href="http://pmem.io/libpmemobj-cpp/master/doxygen/index.html" target="_new">libpmemobj C++ manual</a> contains a lot more detail.
+
+{{step "Run the C++ Version"}}
+
+<p>
+As before, the most interesting logic is in the <code>count</code>
+function (line 81 below).
+<p>
+You can edit the program below and make changes if you'd like to
+experiment, or just run it as-is.
+
+{{edit "freq_pmem_cpp.cpp" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run the freq Program"}}
+
+<p>
+A small file containing 16 words is provided in <code>words.txt</code>.
+The script below will run the <code>freq</code> example on that file.
+
+{{edit "run.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run.sh"}}
+
+{{summary}}
+
+<p>
+Now you've seen a full example using C++ interfaces with <b>libpmemobj</b>.
+If you're looking for a C++ starting point for your project,
+this one might be a good place to start.
+
+{{bottom}}

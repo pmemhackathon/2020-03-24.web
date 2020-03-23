@@ -1,0 +1,161 @@
+{{top "Mapping Persistent Memory"}}
+
+<p class="intro">
+The ability to memory map persistent memory
+and access it directly is fundamental to
+all the examples in this workshop.
+<p class="intro">
+This example shows how this is done using a
+simple C program.
+
+{{template "scrollToContinue"}}
+
+<p>
+The Linux system call for memory mapping files
+is called <code>mmap()</code>.
+<img src="/img/examples/{{.Ex}}/mmap.jpg" class="figure">
+Persistent memory (or <em>pmem</em>) is exposed to an application
+as a file.
+<p>
+The Linux DAX feature (short for
+<em>Direct Access</em>) means that when an application
+memory maps a pmem file, it gets direct load/store access.
+The application can use the persistent media without
+going through the kernel.
+<p class="clear">
+Memory mapped files have been around for a long
+time (over 30 years) and the standard interfaces
+require applications to <em>flush</em> changes
+to make them persistent.
+<p>
+<img src="/img/examples/{{.Ex}}/msync.jpg" class="figure">
+The standard API for flushing changes to a range
+of a memory mapped file is <code>msync()</code>.
+<p>
+Applications only assume stores are persistent
+after a successful call to <code>msync()</code>.  Before
+that, if the program or system crashes, unflushed
+stores may or may not be persistent, in any order.
+<p class="clear">
+Later, in <a href="F">Example F</a>, we'll
+show how flushing can be done more
+optimally using cache flushing instructions
+or libraries like <b>libpmem</b>.
+<p>
+The raw pmem access shown in this example is
+very simple -- <code>msync()</code> is not
+transactional.  Making transactional updates
+to maintain consistent pmem data structures
+is covered in later examples.
+
+{{step "Run-Time Environment"}}
+
+<p>
+The machine used in this workshop has several terabytes
+of persistent memory installed.
+<p>
+The persistent memory
+shows up as a device with a path like <code>/dev/pmem0</code>.
+<p>
+An ext4 file system is used in DAX mode to provide access
+to the pmem.  The file system is mounted on the directory
+<code>/pmem</code> so programs can access pmem by using
+files that start with that path.
+<p>
+Exposing pmem this way allows the management of
+persistent memory like any other storage, using
+files, directories, permissions, quotas, etc.
+
+{{output "fs.out" "dax"}}
+
+<p>
+As you can see above, the <code>df</code> command
+shows that the directory <code>/pmem</code> on the workshop server
+is a file system built on <code>/dev/pmem0</code> (shown in line 3).
+Using the <code>mount command</code> (line 5), we can confirm that
+it is exposed using the <code class="highlight">dax</code> option.
+
+{{step "Basic mmap in C"}}
+
+<p>
+A simple C program, fully functional, is provided below.
+The program takes a pmem file name as an argument.
+<p>
+The program uses <tt><a href="http://man7.org/linux/man-pages/man2/mmap.2.html" target="_new">mmap()</a></tt> (click to
+see the man page in a new window) to map the pmem.
+Then memory operations such as
+<tt><a href="http://man7.org/linux/man-pages/man3/strcpy.3.html" target="_new">strcpy()</a></tt>
+and
+<tt><a href="http://man7.org/linux/man-pages/man3/memcpy.3.html" target="_new">memcpy()</a></tt>
+can be used with pmem.
+<p>
+The program uses
+<tt><a href="http://man7.org/linux/man-pages/man2/msync.2.html" target="_new">msync()</a></tt>
+to flush its changes.
+<p>
+You can edit the program below and make changes if you'd like to
+experiment, or just run it as-is.
+
+{{edit "basic_mmap.c" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Program"}}
+
+<p>
+To run this example, we first create a file (full of
+nothing but zeros) using the Linux
+<tt><a href="http://man7.org/linux/man-pages/man1/truncate.1.html" target="_new">truncate</a></tt> command.  We dump the file contents to
+show its initial contents.  Then we run the example program and
+dump the file again to see the result.
+<p>
+Of course, you should feel free to edit the script below and run it
+again and again, to experiment with different commands.
+
+{{edit "run.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run.sh"}}
+
+<p>
+Like all examples in this workshop, any changes you make
+are to your own clone of the repository.  Your
+clone is on the workshop server and you can browse it
+directly and download any files you want to keep using
+the menu in the upper left corner of the page.
+
+{{summary}}
+
+<p>
+This example shows the bare-minimum, raw <code>mmap()</code> access using POSIX
+calls.  This includes using the POSIX <code>msync()</code> to flush stores to
+persistence.  This illustrates that POSIX interfaces work as expected,
+and the repo contains a
+<a href="/repo/examples/A/windows.c" target="_new">Windows version</a>
+showing that raw access is similarly provided by Windows.
+<p>
+<b>This example was just for background!</b>  You need to remember the
+application responsibilities outlined in the slides.  You probably want
+to use libraries like <b>libpmemobj</b> to provide much less raw access.
+<p>
+Even if you decide you don't want the high-level libraries, you probably
+want the basics provided by <b>libpmem</b>.  See <a href="F">Example F</a>
+for more details on that.
+<p>
+Now that you've seen the basic memory mapped of persistent memory,
+continue on to <a href="B">Example B</a> to see a much more
+programmer-friendly API for using persistent memory.
+
+{{bottom}}

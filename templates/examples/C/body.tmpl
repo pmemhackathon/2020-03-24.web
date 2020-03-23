@@ -1,0 +1,111 @@
+{{top "Basic Persistent Memory Transactions"}}
+
+<p class="intro">
+If a program crashes while updating a data structure
+in memory, the partially-done update doesn't matter
+because normal, volatile memory is returned to the
+system when the program exits.  But if that data structure
+is in persistent memory, it will still be there when
+the program starts back up and steps are needed to
+keep it consistent.
+<p class="intro">
+This example shows how <b>libpmemobj</b> transactions
+are used to keep pmem data structures consistent
+in the face of program or system crashes.
+
+{{template "scrollToContinue"}}
+
+<p>
+<img src="/img/examples/{{.Ex}}/queue.jpg" class="figure">
+<p>
+This example implements a simple queue, implemented using a
+basic linked list and <i>head</i> and <i>tail</i> pointers.
+Each time an element is added to the queue, a <b>pmem_entry</b>
+struct is allocated, filled in, and then linked into the list.
+<p class="clear">
+Changes to the queue are done transactionally, so that if the
+program or system crashes, the change either happens completely
+or not at all.  To indicate a transaction to <b>libpmemobj</b>
+when using C++, we use the <i>lambda</i> syntax, which is
+a nameless function.  When passed to the <code>transaction::run</code>
+method as shown below, everything contained in the curly braces
+of the lambda function executes transactionally.
+
+{{output "push.lst" "transaction::run"}}
+
+<p>
+Notice the C++ syntax using <code>[&amp;]</code> on line 4 above,
+which indicates the lambda function.  The transaction can include persistent
+memory allocations (like <code>make_persistent</code> above) and
+free operations.  The changes to persistent memory, including
+allocations and frees will be rolled back if interrupted by a failure.
+
+{{step "Using libpmemobj in C++"}}
+
+<p>
+A C++ program that implements a transactional queue in persistent
+memory is shown below.  The most interesting parts are the <code>push</code>
+method (line 78) and the <code>pop</code> method (line 99).
+<p>
+You can edit the program below and make changes if you'd like to
+experiment, or just run it as-is.
+
+{{edit "queue.cpp" "Makefile"}}
+
+<p>
+Once you've made any edits to the
+above source files, click the button
+below to build the program on the server.
+If you see any build errors, scroll back up
+to the source editing window and fix them.
+
+{{build "make"}}
+
+<p>
+If the program built without errors, continue on to the next step below.
+
+{{step "Run Program"}}
+
+<p>
+This example runs three different ways,
+depending on the command-line arguments:
+<ul>
+<li><tt>queue pmemfile push X</tt> <i>(push integer X onto the queue)</i>
+<li><tt>queue pmemfile pop</tt> <i>(pop a value off the queue)</i>
+<li><tt>queue pmemfile show</tt> <i>(show the queue contents)</i>
+</ul>
+<p>
+You can edit the script below and run it
+again and again, to experiment with different commands.
+
+{{edit "run.sh"}}
+
+<p>
+Now you can try running the program using the above commands.
+
+{{run "./run.sh"}}
+
+<p>
+Like all examples in this workshop, any changes you make
+are to your own clone of the repository.  Your
+clone is on the workshop server and you can browse it
+directly and download any files you want to keep using
+the menu in the upper left corner of the page.
+
+{{summary}}
+
+<p>
+This example showed a small amount of what <b>libpmemobj</b>
+can do around persistent memory allocation and transactions.
+The <a href="http://pmem.io/pmdk/manpages/linux/master/libpmemobj/libpmemobj.7.html" target="_new">libpmemobj man page</a>
+and the <a href="http://pmem.io" target="_new">pmem.io</a> web site contain
+quite a bit more detail, including tutorials and examples.
+<p>
+You may find the
+<a href="/repo/pmdk-overview.pdf" target="_new">PMDK overview slides</a>
+useful for some additional background on the Persistent Memory Development Kit.
+<p>
+Use the menu in the upper left to return to the list of examples
+for this workshop.
+
+{{bottom}}
