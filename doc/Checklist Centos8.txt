@@ -8,6 +8,7 @@ follow this checklist.
    
 1. Do a system update
   $sudo yum check-update
+  $sudo yum update
 
 2. Install and enable the EPEL package repository
 
@@ -17,16 +18,17 @@ follow this checklist.
 	-- OR --
 	Follow the instructions at https://fedoraproject.org/wiki/EPEL
 
-3. Install the development tools and compilers
+3. Install the development tools and compilers (note that they might already be installed)
   $ sudo yum group install "Development Tools"
 
-4. Install the basics you care about, something like:
-	$ sudo yum install dnf git ipmctl ndctl vim-enhanced
+4. Install the basics and fixes you care about, something like:
+	$ sudo yum install dnf git ipmctl ndctl vim-enhanced firewalld certbot
+	(note that some of these packages might already be installed in the update)
 	
 	Implement the Centos8 timedatectl bug workaround:
 	$ cd /etc
 	$ sudo rm localtime
-	$ sudo ln -s ../usr/share/zoneinfo/MST7MDT localtime
+	$ sudo ln -s ../usr/share/zoneinfo/PST8PDT localtime
 	
 	Make sure the machine has a DNS entry
 
@@ -60,8 +62,10 @@ follow this checklist.
 	$ sudo dnf config-manager \
     	  --add-repo \
     	  https://download.docker.com/linux/centos/docker-ce.repo
+	  (note: at the time of this writing, Docker Centos7 was available, use that for Centos8)
+	  (note: Docker literature instructs that the software should be installed from a user, not as root)
+	  
 	$ sudo dnf update 
-	$ sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
 	
 	Install and Enable Docker
 	$ sudo dnf install docker-ce docker-ce-cli containerd.io
@@ -72,6 +76,10 @@ follow this checklist.
 	$ sudo docker run hello-world
 
 5. Allow ports 80 and 443 through Fedora's firewall:
+	$ sudo systemctl enable firewalld
+	$ sudo systemctl start firewalld
+	$ sudo systemctl status firewalld
+
 	$ sudo firewall-cmd --state
 	$ sudo firewall-cmd --list-ports
 	$ sudo firewall-cmd --list-services
