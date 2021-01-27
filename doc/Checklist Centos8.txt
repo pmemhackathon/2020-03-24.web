@@ -16,6 +16,7 @@ follow this checklist.
   	$ sudo yum check-update
 	$ sudo yum update
 
+
 2. Install and enable the EPEL package repository
    	$ sudo yum install epel-release
 	
